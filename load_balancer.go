@@ -8,31 +8,29 @@ import (
 	"sync/atomic"
 )
 
-// BackendServer représente un serveur backend
 type BackendServer struct {
 	URL          *url.URL
 	Alive        bool
 	ReverseProxy *httputil.ReverseProxy
 }
 
-// ServerPool contient les serveurs backend
+
 type ServerPool struct {
 	servers []*BackendServer
 	current uint64
 }
 
-// AddServer ajoute un serveur backend à la pool
+
 func (s *ServerPool) AddServer(server *BackendServer) {
 	s.servers = append(s.servers, server)
 }
 
-// NextServer retourne le prochain serveur backend à utiliser en utilisant le round-robin
+
 func (s *ServerPool) NextServer() *BackendServer {
 	next := atomic.AddUint64(&s.current, uint64(1))
 	return s.servers[next%uint64(len(s.servers))]
 }
 
-// ProxyHandler est le gestionnaire HTTP qui fait office de proxy
 func ProxyHandler(pool *ServerPool) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		server := pool.NextServer()
@@ -45,7 +43,7 @@ func ProxyHandler(pool *ServerPool) http.HandlerFunc {
 }
 
 func main() {
-	// URLs des serveurs backend
+	
 	backendURLs := []string{
 		"http://localhost:8081",
 		"http://localhost:8082",
